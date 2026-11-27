@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>SketchDeck concept film</title>
+<meta name="description" content="A concept brand film for SketchDeck by Jon Toews.">
+<meta property="og:title" content="SketchDeck concept film">
+<meta property="og:description" content="A concept brand film for SketchDeck by Jon Toews.">
+<meta property="og:image" content="https://jontoews.com/sketchdeck-film/og.jpg">
+<meta property="og:type" content="video.other">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#161638">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Crect width='60' height='60' rx='12' fill='%23161638'/%3E%3Cpath d='M9 31a10 10 0 0 0 20 0h-3a7 7 0 0 1-14 0z' fill='%230077e4'/%3E%3Cpath d='M51 29a10 10 0 0 0-20 0h3a7 7 0 0 1 14 0z' fill='%230077e4'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --navy: #161638; --ink: #0e0e26; --blue: #0077e4; --lav: #b8acff; --paper: #eeece8; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--navy); color: var(--paper); font: 400 13px/1.4 Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  body { overflow: hidden; }
+  #field { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  main { position: fixed; inset: 0; display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) calc(44px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+  .stage { position: relative; width: min(1600px, 92vw, calc((100vh - 120px) * 1920 / 804)); aspect-ratio: 1920 / 804; }
+  #amb { position: absolute; left: -14%; top: -30%; width: 128%; height: 160%; filter: blur(60px) saturate(1.2); opacity: 0; transition: opacity 1.2s ease; pointer-events: none; }
+  .stage.on #amb { opacity: 0.5; }
+  .player { position: absolute; inset: 0; border-radius: 6px; overflow: hidden; background: #000; box-shadow: 0 0 0 1px rgba(184, 172, 255, 0.14), 0 30px 80px rgba(0, 0, 0, 0.45); }
+  video { display: block; width: 100%; height: 100%; object-fit: cover; background: #000; cursor: pointer; }
+  .play { position: absolute; left: 50%; top: 50%; width: 88px; height: 88px; margin: -44px 0 0 -44px; border: 0; border-radius: 50%; background: var(--blue); cursor: pointer; display: grid; place-items: center; transition: transform 0.25s ease, opacity 0.3s ease; box-shadow: 0 10px 40px rgba(0, 119, 228, 0.45); }
+  .play:hover { transform: scale(1.06); }
+  .play svg { width: 30px; height: 30px; margin-left: 5px; }
+  .stage.playing .play { opacity: 0; pointer-events: none; transform: scale(0.8); }
+  .bar { position: absolute; left: 0; right: 0; bottom: 0; padding: 26px 18px 14px; display: flex; align-items: center; gap: 14px; background: linear-gradient(transparent, rgba(14, 14, 38, 0.7)); opacity: 0; transition: opacity 0.3s ease; }
+  .stage:hover .bar, .stage:not(.playing) .bar, .stage.kb .bar { opacity: 1; }
+  .stage.playing.idle .bar { opacity: 0; }
+  .btn { width: 32px; height: 32px; border: 0; padding: 0; background: none; color: var(--paper); cursor: pointer; display: grid; place-items: center; opacity: 0.85; flex: none; }
+  .btn:hover, .btn:focus-visible { opacity: 1; }
+  .btn svg { width: 18px; height: 18px; }
+  button:focus-visible { outline: 2px solid var(--lav); outline-offset: 3px; border-radius: 4px; }
+  .track { position: relative; flex: 1; height: 18px; cursor: pointer; touch-action: none; }
+  .track::before { content: ""; position: absolute; left: 0; right: 0; top: 8px; height: 2px; background: rgba(238, 236, 232, 0.22); border-radius: 2px; }
+  .fill { position: absolute; left: 0; top: 8px; height: 2px; width: 0; background: var(--blue); border-radius: 2px; }
+  .knob { position: absolute; top: 3px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: var(--paper); transform: scale(0); transition: transform 0.15s ease; }
+  .track:hover .knob, .track.drag .knob { transform: scale(1); }
+  .time { font-variant-numeric: tabular-nums; font-size: 12px; color: rgba(238, 236, 232, 0.75); min-width: 74px; text-align: right; }
+  footer { position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; gap: 16px; padding: 0 max(18px, env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left)); font-size: 11.5px; letter-spacing: 0.01em; color: rgba(184, 172, 255, 0.55); }
+  footer a { color: inherit; text-decoration: none; }
+  footer a:hover { color: var(--lav); }
+  @media (max-width: 640px) { .time { display: none; } .bar { padding: 14px 8px 4px; gap: 6px; } .btn { width: 28px; height: 28px; } .play { width: 56px; height: 56px; margin: -28px 0 0 -28px; } .play svg { width: 22px; height: 22px; } footer { font-size: 10.5px; } }
+  footer a { white-space: nowrap; }
+</style>
+</head>
+<body>
+<canvas id="field" aria-hidden="true"></canvas>
+<main>
+  <div class="stage" id="stage">
+    <canvas id="amb" width="48" height="20" aria-hidden="true"></canvas>
+    <div class="player">
+      <video id="v" src="film.mp4" poster="poster.jpg" preload="metadata" playsinline></video>
+      <button class="play" id="play" aria-label="Play film"><svg viewBox="0 0 24 24"><path d="M5 3l16 9-16 9z" fill="#fff"/></svg></button>
+      <div class="bar">
+        <button class="btn" id="pp" aria-label="Play"><svg viewBox="0 0 24 24" id="ppi"><path d="M6 4l14 8-14 8z" fill="currentColor"/></svg></button>
+        <div class="track" id="track" role="slider" aria-label="Seek" aria-valuemin="0" aria-valuemax="75" aria-valuenow="0" tabindex="0"><div class="fill" id="fill"></div><div class="knob" id="knob"></div></div>
+        <span class="time" id="time">0:00 / 1:15</span>
+        <button class="btn" id="mute" aria-label="Mute"><svg viewBox="0 0 24 24" id="mi"></svg></button>
+        <button class="btn" id="fs" aria-label="Full screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+      </div>
+    </div>
+  </div>
+</main>
+<footer><span>Concept film for SketchDeck · not an official SketchDeck production</span><a href="https://jontoews.com/">Jon Toews</a></footer>
+<script src="beats.js"></script>
+<script>
+const v = document.getElementById('v'), stage = document.getElementById('stage');
+const $ = (id) => document.getElementById(id);
+const fmt = (s) => { s = Math.max(0, s || 0); return Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0'); };
+const ICON = { play: '<path d="M6 4l14 8-14 8z" fill="currentColor"/>', pause: '<path d="M6 4h4v16H6zM14 4h4v16h-4z" fill="currentColor"/>',
+  on: '<path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8a5 5 0 0 1 0 8M18.5 5.5a8.5 8.5 0 0 1 0 13" fill="none" stroke="currentColor" stroke-width="1.8"/>',
+  off: '<path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9l6 6M22 9l-6 6" stroke="currentColor" stroke-width="1.8"/>' };
+
+/* ---- player ---- */
+const toggle = () => (v.paused ? v.play() : v.pause());
+$('play').onclick = toggle; $('pp').onclick = toggle; v.onclick = toggle;
+v.onplay = () => { stage.classList.add('playing', 'on'); $('ppi').innerHTML = ICON.pause; $('pp').setAttribute('aria-label', 'Pause'); };
+v.onpause = () => { stage.classList.remove('playing'); $('ppi').innerHTML = ICON.play; $('pp').setAttribute('aria-label', 'Play'); };
+v.onended = () => { stage.classList.remove('on'); };
+const paintMute = () => { $('mi').innerHTML = v.muted ? ICON.off : ICON.on; $('mute').setAttribute('aria-label', v.muted ? 'Unmute' : 'Mute'); };
+$('mute').onclick = () => { v.muted = !v.muted; paintMute(); }; paintMute();
+$('fs').onclick = () => { const el = stage.querySelector('.player'); (document.fullscreenElement ? document.exitFullscreen() : (el.requestFullscreen ? el.requestFullscreen() : v.webkitEnterFullscreen && v.webkitEnterFullscreen()))?.catch?.(() => {}); };
+const paintTime = () => {
+  const d = v.duration || 75.4, k = (v.currentTime || 0) / d;
+  $('fill').style.width = k * 100 + '%'; $('knob').style.left = k * 100 + '%';
+  $('time').textContent = fmt(v.currentTime) + ' / ' + fmt(d); $('track').setAttribute('aria-valuenow', Math.round(v.currentTime));
+};
+v.ontimeupdate = paintTime; v.onloadedmetadata = paintTime;
+const track = $('track');
+const seekAt = (e) => { const r = track.getBoundingClientRect(); v.currentTime = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * (v.duration || 75.4); paintTime(); };
+track.addEventListener('pointerdown', (e) => { track.setPointerCapture(e.pointerId); track.classList.add('drag'); seekAt(e); });
+track.addEventListener('pointermove', (e) => { if (track.classList.contains('drag')) seekAt(e); });
+track.addEventListener('pointerup', () => track.classList.remove('drag'));
+addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'BUTTON' && (e.key === ' ' || e.key === 'Enter')) return;
+  const k = e.key.toLowerCase();
+  if (k === ' ' || k === 'k') { e.preventDefault(); toggle(); }
+  else if (k === 'm') { v.muted = !v.muted; paintMute(); }
+  else if (k === 'f') $('fs').click();
+  else if (k === 'arrowright') v.currentTime = Math.min(v.duration, v.currentTime + 5);
+  else if (k === 'arrowleft') v.currentTime = Math.max(0, v.currentTime - 5);
+  else return;
+  stage.classList.add('kb'); clearTimeout(window._kb); window._kb = setTimeout(() => stage.classList.remove('kb'), 1600);
+});
+let idleT; stage.addEventListener('pointermove', () => { stage.classList.remove('idle'); clearTimeout(idleT); idleT = setTimeout(() => stage.classList.add('idle'), 2200); });
+
+/* ---- ambient light: the film's own colours, tiny and blurred, behind the frame ---- */
+const amb = $('amb'), ax = amb.getContext('2d');
+/* ---- the field: tiny half-rings that buzz; on each beat of the film a scatter of them turns over ---- */
+const cv = $('field'), cx = cv.getContext('2d');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const GAP = 22, R = 3.6, LW = 1.35;
+let cells = [], cols = 0, rows = 0, dpr = 1;
+function layout() {
+  dpr = Math.min(2, devicePixelRatio || 1);
+  cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+  cols = Math.ceil(innerWidth / GAP) + 1; rows = Math.ceil(innerHeight / GAP) + 1;
+  cells = [];
+  for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+    const h = Math.sin(i * 12.9898 + j * 78.233) * 43758.5453, r = h - Math.floor(h);
+    cells.push({ a: Math.floor(r * 4) * Math.PI / 2, to: null, t0: 0, blue: r > 0.9 });
+  }
+}
+layout(); addEventListener('resize', layout);
+const beatAt = (t) => { const B = window.BEATS || []; let lo = 0, hi = B.length - 1; if (!B.length || t < B[0]) return -1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (B[m] <= t) lo = m; else hi = m; } return lo; };
+let lastBeat = -2, lastIdle = 0, seed = 1;
+const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+function turn(share, now) { for (const c of cells) if (rnd() < share) { c.from = c.a; c.to = c.a + (rnd() < 0.5 ? 1 : -1) * Math.PI / 2 * (rnd() < 0.3 ? 2 : 1); c.t0 = now; } }
+function frame(now) {
+  // beat: a scatter turns over on every beat of the track while it plays; a slow drift when it doesn't
+  if (!reduce) {
+    if (!v.paused) { const b = beatAt(v.currentTime); if (b !== lastBeat) { lastBeat = b; turn(0.07, now); } }
+    else if (now - lastIdle > 900) { lastIdle = now; turn(0.012, now); }
+  }
+  cx.setTransform(dpr, 0, 0, dpr, 0, 0); cx.clearRect(0, 0, innerWidth, innerHeight);
+  const st = stage.getBoundingClientRect(), mx = st.left + st.width / 2, my = st.top + st.height / 2;
+  const buzz = !v.paused && !reduce ? 0.55 : 0;
+  cx.lineWidth = LW; cx.lineCap = 'butt';
+  for (let j = 0, k = 0; j < rows; j++) for (let i = 0; i < cols; i++, k++) {
+    const c = cells[k], x = i * GAP + (j % 2) * GAP / 2, y = j * GAP;
+    if (x > st.left - 10 && x < st.right + 10 && y > st.top - 10 && y < st.bottom + 10) continue;   // nothing under the film
+    if (c.to !== null) { const e = Math.min(1, (now - c.t0) / 140); const q = 1 - Math.pow(1 - e, 4); c.cur = c.from + (c.to - c.from) * q; if (e >= 1) { c.a = c.to; c.to = null; c.cur = c.a; } } else c.cur = c.a;
+    const d = Math.hypot((x - mx) / (st.width * 0.9), (y - my) / (st.height * 1.6));
+    const al = Math.max(0, Math.min(1, 1.25 - d * 0.6)) * (c.blue ? 0.42 : 0.2);
+    if (al < 0.02) continue;
+    const jx = buzz ? (Math.sin(now * 0.09 + k) * buzz) : 0, jy = buzz ? (Math.cos(now * 0.11 + k * 1.7) * buzz) : 0;
+    cx.strokeStyle = c.blue ? `rgba(0,119,228,${al})` : `rgba(184,172,255,${al})`;
+    cx.beginPath(); cx.arc(x + jx, y + jy, R, c.cur, c.cur + Math.PI); cx.stroke();
+  }
+  // ambient
+  if (!v.paused && v.readyState >= 2) { try { ax.drawImage(v, 0, 0, amb.width, amb.height); } catch (e) {} }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+v.addEventListener('loadeddata', () => { try { ax.drawImage(v, 0, 0, amb.width, amb.height); } catch (e) {} });
+</script>
+</body>
+</html>
